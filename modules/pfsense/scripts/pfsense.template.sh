@@ -1,6 +1,7 @@
 #!/bin/bash
 
 timerkey=0.2
+debug=30
 
 #Wait for pfsence to start
 sleep 30
@@ -94,12 +95,11 @@ qm sendkey $1 n-kp_enter
 qm sendkey $1 change_pfs_lan_ip-kp_enter
 #Enter LAN network mask
 qm sendkey $1 2-4-kp_enter
-#Enter LAN gateway
-qm sendkey $1 change_pfs_lan_gateway-kp_enter
-qm sendkey $1 change_pfs_lan_gateway-kp_enter
-qm sendkey $1 y-kp_enter
+qm sendkey $1 kp_enter
+
 #Deney ipv6 adres configuration for LAN over DHCP
 qm sendkey $1 n-kp_enter-kp_enter
+
 #Enable DHCP on LAN
 qm sendkey $1 y-kp_enter
 #Enter DHCP start adress for LAN
@@ -120,4 +120,4 @@ sleep 90
 qm sendkey $1 1-4-kp_enter
 qm sendkey $1 y
 qm sendkey $1 kp_enter
-#ENd of scritp
+#End of scritp
