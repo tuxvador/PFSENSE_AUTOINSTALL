@@ -27,7 +27,7 @@ This will generate the interfaces, install pfsense and configure it with the rul
 No input is needed, the script uses and displays default value which you only have to validate by pressing enter.
 
 
-**Estimated install time : \
+**Estimated install time : 10 mins \
 PFSense version : pfSense-CE-2.7.2 \
 Ansible version : core 2.14.3 \
 Terraform version : v1.8.4 \
