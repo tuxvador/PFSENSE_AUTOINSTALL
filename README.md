@@ -1,6 +1,8 @@
 # proxmox_goad_pfsense Autoinstall
 Proxmox GOAD Pfsense Autoinstall
 
+If you want to change values, you can do so in goad.conf
+
 The aim of this repo is to share scripts that i have develloped to automate pfsense firewall install for proxmox
 
 I am currently automating the majority of the tasks. For the install, the user only normaly has to modify the file **goad.conf** in the root directory of the repository.
