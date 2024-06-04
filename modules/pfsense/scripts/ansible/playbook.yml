@@ -191,8 +191,8 @@
         blockbogons: true
         ipv4_type: static
         ipv4_address: "{{ PFS_LAN_IP }}"
-        ipv4_gateway: LANGW
         ipv4_prefixlen: "{{ LAN_MASK }}"
+        # ipv4_gateway: LANGW
 
     - name: Disable default lan rules
       pfsensible.core.pfsense_rule:
@@ -369,14 +369,14 @@
         state: present
       when: hits.count < 1
 
-    - name: Check if dhcp enabled for vlan1 enable
+    - name: Check if dhcp enabled for vlan2 enable
       community.general.xml:
         path: /cf/conf/config.xml
         xpath: /pfsense/dhcpd/opt3/enable
         count: true
       register: hits
 
-    - name: Enable DHCP for vlan1 enable
+    - name: Enable DHCP for vlan2 enable
       community.general.xml:
         path: /cf/conf/config.xml
         xpath: /pfsense/dhcpd/opt3

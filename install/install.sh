@@ -55,6 +55,8 @@ pfsense_vmid        = $(grep PROXM_VMID goad.conf| cut -d "=" -f2)
 pfsense_iso         = "$(grep PFS_ISO goad.conf| cut -d "=" -f2)"
 EOF
 
+
+
 echo ''
 echo ''
 
@@ -170,8 +172,8 @@ wan_ip_value=$(grep 'PFS_WAN_IPV4_ADDRESS=' goad.conf | cut -d'=' -f2)
 wan_gateway_value=$(grep 'PFS_WAN_GATEWAY=' goad.conf | cut -d'=' -f2)
 lan_ipv4_value=$(grep 'PFS_LAN_IPV4_ADDRESS=' goad.conf | cut -d'=' -f2)
 lan_gateway_value=$(grep 'PFS_LAN_GATEWAY=' goad.conf | cut -d'=' -f2)
-vlan2_dhcp_start_value=$(grep 'VLAN2_DHCP_START=' goad.conf | cut -d'=' -f2)
-vlan2_dhcp_end_value=$(grep 'VLAN2_DHCP_END=' goad.conf | cut -d'=' -f2)
+lan_dhcp_start_value=$(grep 'LAN_DHCP_START=' goad.conf | cut -d'=' -f2)
+lan_dhcp_end_value=$(grep 'LAN_DHCP_END=' goad.conf | cut -d'=' -f2)
 
 # Transform the WAN interface value to the desired format with dashes
 transformed_wan_value=$(echo $wan_interface_value | sed 's/./&-/g' | sed 's/-$//')
@@ -181,16 +183,16 @@ transformed_wan_ip_value=$(echo $wan_ip_value | sed 's/./&-/g' | sed 's/-$//')
 transformed_wan_gateway_value=$(echo $wan_gateway_value | sed 's/./&-/g' | sed 's/-$//')
 transformed_lan_ipv4_value=$(echo $lan_ipv4_value | sed 's/./&-/g' | sed 's/-$//')
 transformed_lan_gateway_value=$(echo $lan_gateway_value | sed 's/./&-/g' | sed 's/-$//')
-transformed_vlan2_dhcp_start_value=$(echo $vlan2_dhcp_start_value | sed 's/./&-/g' | sed 's/-$//')
-transformed_vlan2_dhcp_end_value=$(echo $vlan2_dhcp_end_value | sed 's/./&-/g' | sed 's/-$//')
+transformed_lan_dhcp_start_value=$(echo $lan_dhcp_start_value | sed 's/./&-/g' | sed 's/-$//')
+transformed_lan_dhcp_end_value=$(echo $lan_dhcp_end_value | sed 's/./&-/g' | sed 's/-$//')
 
 # Replace dots with "dot"
 transformed_wan_ip_value=$(echo $transformed_wan_ip_value | sed 's/\./dot/g')
 transformed_wan_gateway_value=$(echo $transformed_wan_gateway_value | sed 's/\./dot/g')
 transformed_lan_ipv4_value=$(echo $transformed_lan_ipv4_value | sed 's/\./dot/g')
 transformed_lan_gateway_value=$(echo $transformed_lan_gateway_value | sed 's/\./dot/g')
-transformed_vlan2_dhcp_start_value=$(echo $transformed_vlan2_dhcp_start_value | sed 's/\./dot/g')
-transformed_vlan2_dhcp_end_value=$(echo $transformed_vlan2_dhcp_end_value | sed 's/\./dot/g')
+transformed_lan_dhcp_start_value=$(echo $transformed_lan_dhcp_start_value | sed 's/\./dot/g')
+transformed_lan_dhcp_end_value=$(echo $transformed_lan_dhcp_end_value | sed 's/\./dot/g')
 
 
 # Replace the WAN placeholder in modules/pfsense/scripts/pfsense.sh with the transformed WAN value
@@ -208,9 +210,9 @@ sed -i "s/change_pfs_lan_ip/$transformed_lan_ipv4_value/" modules/pfsense/script
 # Replace the LAN Gateway placeholder in modules/pfsense/scripts/pfsense.sh with the transformed LAN Gateway value
 sed -i "s/change_pfs_lan_gateway/$transformed_lan_gateway_value/" modules/pfsense/scripts/pfsense.sh
 # Replace the VLAN2 DHCP start placeholder in modules/pfsense/scripts/pfsense.sh with the transformed VLAN2 DHCP start value
-sed -i "s/change_pfs_lan_dhcp_start/$transformed_vlan2_dhcp_start_value/" modules/pfsense/scripts/pfsense.sh
+sed -i "s/change_pfs_lan_dhcp_start/$transformed_lan_dhcp_start_value/" modules/pfsense/scripts/pfsense.sh
 # Replace the VLAN2 DHCP end placeholder in modules/pfsense/scripts/pfsense.sh with the transformed VLAN2 DHCP end value
-sed -i "s/change_pfs_lan_dhcp_end/$transformed_vlan2_dhcp_end_value/" modules/pfsense/scripts/pfsense.sh
+sed -i "s/change_pfs_lan_dhcp_end/$transformed_lan_dhcp_end_value/" modules/pfsense/scripts/pfsense.sh
 
 echo ''
 echo ''
