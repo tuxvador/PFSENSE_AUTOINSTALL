@@ -24,14 +24,14 @@ This will generate the interfaces, install pfsense and configure it with the rul
 
 No input is needed, the script uses and displays default value which you only have to validate by pressing enter.
 
-***
-Estimated install time :
+
+**Estimated install time :
 PFSense version : pfSense-CE-2.7.2
 Ansible version : core 2.14.3
 Terraform version : v1.8.4
 lxml version : 5.2.2
-pfsensible.core version : 0.6.1
-***
+pfsensible.core version : 0.6.1**
+
 
 # Note
 You need internet access on your proxmox ton install packages in pfsense.tf in /module/pfsense/ansible/scripts/pfsense.tf in the remote_exec block.
