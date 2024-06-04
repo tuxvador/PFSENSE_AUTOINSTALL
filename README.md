@@ -1,4 +1,4 @@
-# proxmox_goad_pfsense Autoinstall
+# proxmox_pfsense Autoinstall
 Proxmox GOAD Pfsense Autoinstall
 
 If you want to change values, you can do so in goad.conf
