@@ -1,0 +1,44 @@
+admin_servers:
+  hosts:
+    pfsense:
+      ansible_host: 192.168.2.2
+      ansible_password: pfsense
+      ansible_username: admin
+      ansible_ssh_private_key_file: ../../../../ssh/ansible.key
+      ansible_ssh_pub_file: ../../../../ssh/ansible.pubkey
+      ansible_python_interpreter: /usr/local/bin/python3.11
+      ansible_ssh_common_args: "-o StrictHostKeyChecking=no"
+      new_pfs_pwd: pfsense30*#
+      new_pfs_pwd_hash: $2y$10$KZEKmlXjuyRsFggN2GazjuEKKjOQ/VdNrQhUNb9OpkZ759ZlAXwYa
+      whitelist_ssh_network: 10.0.0.0/30
+      PM_DOMAIN: "myusti.fr"
+      PM_HOSTNAME: "pfsense"
+      PM_DNS_HOSTNAME: "one.one.one.one"
+      PM_DNS_IP: 1.1.1.1
+      PM_WAN_IP: 10.0.0.1
+      PM_LAN_IP: 192.168.2.1
+      WAN_NETWORK: 10.0.0.0/30
+      WAN_MASK: 30
+      LAN_NETWORK: 192.168.2.0/24
+      LAN_MASK: 24
+      PFS_WAN_IP: 10.0.0.2
+      PFS_LAN_IP: 192.168.2.2
+      PFS_WAN_INTERFACE: vtnet0
+      PFS_LAN_INTERFACE: vtnet1
+      PFS_OPTIONAL_INTERFACE: vtnet2
+      PFS_VLAN1_INTERFACE: vtnet2.1
+      PFS_VLAN2_INTERFACE: vtnet2.2
+      PFS_WAN_IPV4_ADDRESS: 10.0.0.2
+      PFS_WAN_GATEWAY: 10.0.0.1
+      PFS_LAN_IPV4_ADDRESS: 192.168.2.2
+      PFS_LAN_GATEWAY: 10.0.0.2
+      VLAN1_NETWORK: 192.168.10.0/24
+      VLAN2_NETWORK: 192.168.20.0/24
+      VLANTAG1: VLAN10192.168.10.1
+      VLANTAG1_ipv4: 192.168.10.1
+      VLANTAG2: VLAN20192.168.20.1
+      VLANTAG2_ipv4: 192.168.20.1
+      VLAN1_DHCP_START: 192.168.10.100
+      VLAN1_DHCP_END: 192.168.10.200
+      VLAN2_DHCP_START: 192.168.20.100
+      VLAN2_DHCP_END: 192.168.20.200

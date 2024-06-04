@@ -1,0 +1,391 @@
+# code: language=ansible
+
+- name: Pfsnese playbook
+  hosts: pfsense
+  gather_facts: false
+
+  tasks:
+    - name: Check default password is already changed for second connection
+      ansible.builtin.command:
+        cmd: /usr/sbin/false
+      register: test
+      changed_when: false
+      ignore_errors: true
+      ignore_unreachable: true
+
+    - name: Use non default password to connect
+      ansible.builtin.set_fact:
+        ansible_password: "{{ new_pfs_pwd }}"
+      when: test.unreachable is defined
+
+    - name: Register the content of /etc/master.passwd
+      ansible.builtin.command:
+        cmd: grep -E '\$2[ayb]\$10\$13u6q.{46}d2' /etc/master.passwd
+      changed_when: false
+      register: isdefault
+      failed_when: isdefault.rc not in [0, 1]
+
+    - name: Print if password is not default
+      ansible.builtin.debug:
+        msg: "Password is not default"
+      when: isdefault.rc != 0
+
+    - name: Print if password is default
+      ansible.builtin.debug:
+        msg: "Password is default"
+      when: isdefault.rc == 0
+
+    - name: Change default password for root and admin user
+      pfsensible.core.pfsense_user:
+        name: "{{ item | split(':') | first }}"
+        password: "{{ new_pfs_pwd_hash }}"
+      loop: "{{ isdefault.stdout_lines }}"
+      when: isdefault.rc == 0
+
+    - name: Update pfsense password
+      ansible.builtin.set_fact:
+        ansible_password: "{{ new_pfs_pwd }}"
+
+    - name: Set authorized key from file
+      ansible.posix.authorized_key:
+        user: "admin"
+        state: present
+        key: "{{ lookup('file', ansible_ssh_pub_file) }}"
+
+    - name: Gather facts about host
+      ansible.builtin.setup:
+
+    - name: Gather Facts
+      ansible.builtin.debug:
+        var:
+          ansible_facts["all_ipv4_addresses"]
+
+    - name: Check dir lxml exixts
+      ansible.builtin.stat:
+        path: /usr/local/lib/python3.11/site-packages/lxml
+      register: dir_1
+
+    - name: Check dir lxml-5.2.2.dist-info exists
+      ansible.builtin.stat:
+        path: /usr/local/lib/python3.11/site-packages/lxml-5.2.2.dist-info
+      register: dir_2
+
+    - name: Copy python package lxml,for ansible xml to edit /conf/config.xml, skips if directories exixts
+      ansible.builtin.copy:
+        src: ../../../../package_lxml-5.2.2/site-packages/
+        dest: /usr/local/lib/python3.11/site-packages/
+        mode: preserve
+        remote_src: false
+        force: false
+      when: not dir_1.stat.exists and not dir_2.stat.exists
+
+# Aliases -----------------------------
+    - name: Create alaias for proxmox wan ip
+      pfsensible.core.pfsense_alias:
+        name: PM_WAN_IP
+        type: host
+        address: "{{ PM_WAN_IP }}"
+
+    - name: Create alaias for pfsense lan network
+      pfsensible.core.pfsense_alias:
+        name: LAN_NETWORK
+        type: network
+        address: "{{ LAN_NETWORK }}"
+
+    - name: Create alaias for pfsense vlan1 network
+      pfsensible.core.pfsense_alias:
+        name: VLAN1_NETWORK
+        type: network
+        address: "{{ VLAN1_NETWORK }}"
+
+    - name: Create alaias for pfsense vlan2 network
+      pfsensible.core.pfsense_alias:
+        name: VLAN2_NETWORK
+        type: network
+        address: "{{ VLAN2_NETWORK }}"
+# Aliases -----------------------------
+
+# Vlans------------------------------------
+    - name: Configure Vlan1
+      pfsensible.core.pfsense_vlan:
+        vlan_id: 1
+        interface: OPT1
+        descr: "VLAN 1"
+        state: present
+
+    - name: Configure Vlan2
+      pfsensible.core.pfsense_vlan:
+        vlan_id: 2
+        interface: OPT1
+        descr: "VLAN 2"
+        state: present
+# Vlans-----------------------------------
+
+# Firewall config edition, modification of config.xml
+    - name: Check if sshguard_whitelist is in config
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/system/sshguard_whitelist
+        count: true
+      register: hits
+
+    - name: Whitelist ip or network used for ssh login, skips if already in file
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/system
+        pretty_print: true
+        add_children:
+          - sshguard_whitelist: "{{ whitelist_ssh_network }}"
+        state: present
+      when: hits.count < 1
+
+    - name: Check if disablechecksumoffloading is in config
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/system/disablechecksumoffloading
+        count: true
+      register: hits
+
+    - name: Disable hardware checksum offloading, skips if already in file
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/system
+        pretty_print: true
+        add_children:
+          - disablechecksumoffloading: " "
+        state: present
+      when: hits.count < 1
+# Firewall config edition, modification of config.xml
+
+# Firewall configuration using ansible module pfsensiblecore
+
+    - name: Setup hostname,domain,language,timserver,timezone
+      pfsensible.core.pfsense_setup:
+        hostname: "{{ PM_HOSTNAME }}"
+        domain: "{{ PM_DOMAIN }}"
+        dns_hostnames: "{{ PM_DNS_HOSTNAME }}"
+        dns_addresses: "{{ PM_DNS_IP }}"
+        language: en_US
+        session_timeout: 180
+        timezone: Europe/Paris
+        timeservers: 216.239.35.12 216.239.35.4 216.239.35.8 # Google timeservers
+
+    - name: Configure Wan interface
+      pfsensible.core.pfsense_interface:
+        interface: "{{ PFS_WAN_INTERFACE }}"
+        descr: WAN
+        enable: true
+        blockpriv: false
+        blockbogons: true
+        ipv4_type: static
+        ipv4_address: "{{ PFS_WAN_IP }}"
+        ipv4_gateway: WANGW
+        ipv4_prefixlen: "{{ WAN_MASK }}"
+
+    - name: Configure Lan interface
+      pfsensible.core.pfsense_interface:
+        interface: "{{ PFS_LAN_INTERFACE }}"
+        descr: LAN
+        enable: true
+        blockpriv: false
+        blockbogons: true
+        ipv4_type: static
+        ipv4_address: "{{ PFS_LAN_IP }}"
+        ipv4_gateway: LANGW
+        ipv4_prefixlen: "{{ LAN_MASK }}"
+
+    - name: Disable default lan rules
+      pfsensible.core.pfsense_rule:
+        name: Default allow LAN to any rule
+        interface: LAN
+        state: absent
+
+    - name: Disable default lan rules ipv6
+      pfsensible.core.pfsense_rule:
+        name: Default allow LAN IPv6 to any rule
+        interface: LAN
+        state: absent
+
+    - name: Allow ICMP to firewall
+      pfsensible.core.pfsense_rule:
+        name: Allow ICMP TO firewall
+        interface: WAN
+        protocol: icmp
+        ipprotocol: inet
+        source: any
+        destination: any
+        action: pass
+
+    - name: Dont block HTTP traffic
+      pfsensible.core.pfsense_rule:
+        name: Allow proxmox Wan adress to access HTTP
+        interface: WAN
+        protocol: tcp
+        ipprotocol: inet
+        source: PM_WAN_IP
+        destination: any
+        destination_port: 80
+
+    - name: WAN allow SSH
+      pfsensible.core.pfsense_rule:
+        name: Allow ssh on wan interface
+        interface: WAN
+        protocol: tcp
+        ipprotocol: inet
+        source: PM_WAN_IP
+        destination: any
+        destination_port: 22
+        action: pass
+
+    - name: Block all traffic on WAN
+      pfsensible.core.pfsense_rule:
+        name: Block all traffic on WAN
+        interface: WAN
+        protocol: any
+        ipprotocol: inet46
+        source: any
+        destination: any
+        action: block
+
+    - name: ALlow traffic from LAN to OUTSIDE
+      pfsensible.core.pfsense_rule:
+        name: ALlow traffic from LAN to OUTSIDE
+        interface: LAN
+        protocol: any
+        ipprotocol: inet
+        source: LAN_NETWORK
+        destination: any
+        action: pass
+
+    - name: Block all traffic on LAN
+      pfsensible.core.pfsense_rule:
+        name: Block all traffic on LAN
+        interface: LAN
+        protocol: any
+        ipprotocol: inet46
+        source: any
+        destination: any
+        action: block
+
+    - name: Configure Vlan1 interface
+      pfsensible.core.pfsense_interface:
+        interface: "{{ PFS_VLAN1_INTERFACE }}"
+        descr: "{{ VLANTAG1 }}"
+        enable: true
+        blockpriv: false
+        blockbogons: true
+        ipv4_type: static
+        ipv4_address: "{{ VLANTAG1_ipv4 }}"
+
+    - name: ALlow traffic from VLAN1 to OUTSIDE
+      pfsensible.core.pfsense_rule:
+        name: ALlow traffic from VLAN1 to OUTSIDE
+        interface: "{{ VLANTAG1 }}"
+        protocol: any
+        ipprotocol: inet
+        source: "{{ VLAN1_NETWORK }}"
+        destination: any
+        action: pass
+
+    - name: Block all traffic on VLAN1
+      pfsensible.core.pfsense_rule:
+        name: Block all traffic on LAN
+        interface: "{{ VLANTAG1 }}"
+        protocol: any
+        ipprotocol: inet46
+        source: any
+        destination: any
+        action: block
+
+    - name: Configure Vlan2 interface
+      pfsensible.core.pfsense_interface:
+        interface: "{{ PFS_VLAN2_INTERFACE }}"
+        descr: "{{ VLANTAG2 }}"
+        enable: true
+        blockpriv: false
+        blockbogons: true
+        ipv4_type: static
+        ipv4_address: "{{ VLANTAG2_ipv4 }}"
+
+# Enable DHCP for vlans via config.xml
+    - name: Enable DHCP for vlan1
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpbackend
+        pretty_print: true
+        state: present
+        value: kea
+
+    - name: Check if dhcp enabled for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt2
+        count: true
+      register: hits
+
+    - name: Enable DHCP for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd
+        pretty_print: true
+        add_children:
+          - opt2: ""
+        state: present
+      when: hits.count < 1
+
+    - name: Check if dhcp enabled for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt2/enable
+        count: true
+      register: hits
+
+    - name: Enable DHCP for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt2
+        input_type: xml
+        pretty_print: true
+        add_children:
+          - "<enable> </enable>"
+          - "<range><from>{{  VLAN1_DHCP_START }}</from><to>{{ VLAN1_DHCP_END }}</to></range>"
+        state: present
+      when: hits.count < 1
+
+    - name: Check if dhcp enabled for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt3
+        count: true
+      register: hits
+
+    - name: Enable DHCP for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd
+        pretty_print: true
+        add_children:
+          - opt3: ""
+        state: present
+      when: hits.count < 1
+
+    - name: Check if dhcp enabled for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt3/enable
+        count: true
+      register: hits
+
+    - name: Enable DHCP for vlan1 enable
+      community.general.xml:
+        path: /cf/conf/config.xml
+        xpath: /pfsense/dhcpd/opt3
+        input_type: xml
+        pretty_print: true
+        add_children:
+          - "<enable> </enable>"
+          - "<range><from>{{  VLAN2_DHCP_START }}</from><to>{{ VLAN2_DHCP_END }}</to></range>"
+        state: present
+      when: hits.count < 1
+
+# Enable DHCP for vlans via config.xml
