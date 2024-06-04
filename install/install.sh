@@ -221,7 +221,6 @@ echo "**************************************************************************
 echo "install and autoconfigure pfsense vm"
 echo "********************************************************************************************"
 
-
 terraform init
 terraform apply -var-file="dev.tfvars" --auto-approve
 
