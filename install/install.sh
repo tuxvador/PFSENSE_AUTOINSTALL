@@ -36,7 +36,6 @@ sed -i "s#.*PROXM_TRF_TOKEN_VALUE=.*#PROXM_TRF_TOKEN_VALUE=$(pvesh create /acces
 
 trf_role=$(grep PROXM_TRF_ROLE goad.conf| cut -d "=" -f2)
 
-#echo $trf_usr_pwd $trf_user $trf_role $trf_token_name
 #pvesh create /access/users --userid $trf_user@pve --password $trf_usr_pwd
 
 pveum role add $trf_role -privs "Datastore.AllocateSpace Datastore.Audit Pool.Allocate Sys.Audit Sys.Console Sys.Modify VM.Allocate VM.Audit VM.Clone VM.Config.CDROM VM.Config.Cloudinit VM.Config.CPU VM.Config.Disk VM.Config.HWType VM.Config.Memory VM.Config.Network VM.Config.Options VM.Migrate VM.Monitor VM.PowerMgmt SDN.Use"
@@ -54,8 +53,6 @@ pfsense_ip          = "$(grep PFS_LAN_IP goad.conf| cut -d "=" -f2)"
 pfsense_vmid        = $(grep PROXM_VMID goad.conf| cut -d "=" -f2)
 pfsense_iso         = "$(grep PFS_ISO goad.conf| cut -d "=" -f2)"
 EOF
-
-
 
 echo ''
 echo ''
