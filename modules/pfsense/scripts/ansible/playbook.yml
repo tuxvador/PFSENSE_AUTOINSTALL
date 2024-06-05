@@ -314,7 +314,7 @@
         xpath: /pfsense/dhcpbackend
         pretty_print: true
         state: present
-        value: Kea
+        value: kea
 
     - name: Check if dhcp enabled for vlan1 enable
       community.general.xml:
