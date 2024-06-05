@@ -16,7 +16,7 @@ echo "Create config"
 echo "********************************************************************************************"
 pmurl=$(echo 'PROXM_API_URL=https://'$(ip addr show vmbr0 | grep 'inet ' |cut -d ' ' -f 6|cut -d/ -f 1)'/api2/json');sed -i "s#PROXM_API_URL=.*#$pmurl#g" goad.conf
 pfpwd=$(grep PFS_PWD goad.conf| cut -d "=" -f2)
-pfpwdhash=$(htpasswd -bnBC 10 '' 'password'|head -n 1|cut -d ':' -f2)
+pfpwdhash=$(htpasswd -bnBC 10 '' $pfpwd|head -n 1|cut -d ':' -f2)
 sed -i "s#.*PFS_HASH=.*#PFS_HASH=$pfpwdhash#g" goad.conf
 sed -i "s#.*PFS_ISO=.*#PFS_ISO=local:iso/$(ls /var/lib/vz/template/iso/ | grep -i pfsense)#g" goad.conf
 
@@ -104,9 +104,9 @@ PFS_LAN_IPV4_ADDRESS=$(grep 'PFS_LAN_IPV4_ADDRESS' goad.conf | cut -d'=' -f2 | t
 PFS_LAN_GATEWAY=$(grep 'PFS_LAN_GATEWAY' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLAN1_NETWORK=$(grep 'VLAN1_NETWORK' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLAN2_NETWORK=$(grep 'VLAN2_NETWORK' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
-VLANTAG1=$(grep 'VLANTAG1' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
+VLANTAG1NAME=$(grep 'VLANTAG1NAME' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLANTAG1_ipv4=$(grep 'VLANTAG1_ipv4' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
-VLANTAG2=$(grep 'VLANTAG2' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
+VLANTAG2NAME=$(grep 'VLANTAG2NAME' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLANTAG2_ipv4=$(grep 'VLANTAG2_ipv4' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLAN1_DHCP_START=$(grep 'VLAN1_DHCP_START' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
 VLAN1_DHCP_END=$(grep 'VLAN1_DHCP_END' goad.conf | cut -d'=' -f2 | tr -d '[:space:]')
@@ -144,9 +144,9 @@ sed -i "s|\(PFS_LAN_IPV4_ADDRESS:\s*\).*|\1$(escape_for_sed "$PFS_LAN_IPV4_ADDRE
 sed -i "s|\(PFS_LAN_GATEWAY:\s*\).*|\1$(escape_for_sed "$PFS_LAN_GATEWAY")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLAN1_NETWORK:\s*\).*|\1$(escape_for_sed "$VLAN1_NETWORK")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLAN2_NETWORK:\s*\).*|\1$(escape_for_sed "$VLAN2_NETWORK")|" modules/pfsense/scripts/ansible/inventory.yml
-sed -i "s|\(VLANTAG1:\s*\).*|\1$(escape_for_sed "$VLANTAG1")|" modules/pfsense/scripts/ansible/inventory.yml
+sed -i "s|\(VLANTAG1NAME:\s*\).*|\1$(escape_for_sed "$VLANTAG1NAME")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLANTAG1_ipv4:\s*\).*|\1$(escape_for_sed "$VLANTAG1_ipv4")|" modules/pfsense/scripts/ansible/inventory.yml
-sed -i "s|\(VLANTAG2:\s*\).*|\1$(escape_for_sed "$VLANTAG2")|" modules/pfsense/scripts/ansible/inventory.yml
+sed -i "s|\(VLANTAG2NAME:\s*\).*|\1$(escape_for_sed "$VLANTAG2NAME")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLANTAG2_ipv4:\s*\).*|\1$(escape_for_sed "$VLANTAG2_ipv4")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLAN1_DHCP_START:\s*\).*|\1$(escape_for_sed "$VLAN1_DHCP_START")|" modules/pfsense/scripts/ansible/inventory.yml
 sed -i "s|\(VLAN1_DHCP_END:\s*\).*|\1$(escape_for_sed "$VLAN1_DHCP_END")|" modules/pfsense/scripts/ansible/inventory.yml

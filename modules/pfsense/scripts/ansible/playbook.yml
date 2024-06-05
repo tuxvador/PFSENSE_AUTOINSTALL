@@ -270,7 +270,7 @@
     - name: Configure Vlan1 interface
       pfsensible.core.pfsense_interface:
         interface: "{{ PFS_VLAN1_INTERFACE }}"
-        descr: "{{ VLANTAG1 }}"
+        descr: "{{ VLANTAG1NAME }}"
         enable: true
         blockpriv: false
         blockbogons: true
@@ -280,7 +280,7 @@
     - name: ALlow traffic from VLAN1 to OUTSIDE
       pfsensible.core.pfsense_rule:
         name: ALlow traffic from VLAN1 to OUTSIDE
-        interface: "{{ VLANTAG1 }}"
+        interface: "{{ VLANTAG1NAME }}"
         protocol: any
         ipprotocol: inet
         source: "{{ VLAN1_NETWORK }}"
@@ -290,7 +290,7 @@
     - name: Block all traffic on VLAN1
       pfsensible.core.pfsense_rule:
         name: Block all traffic on LAN
-        interface: "{{ VLANTAG1 }}"
+        interface: "{{ VLANTAG1NAME }}"
         protocol: any
         ipprotocol: inet46
         source: any
@@ -300,7 +300,7 @@
     - name: Configure Vlan2 interface
       pfsensible.core.pfsense_interface:
         interface: "{{ PFS_VLAN2_INTERFACE }}"
-        descr: "{{ VLANTAG2 }}"
+        descr: "{{ VLANTAG2NAME }}"
         enable: true
         blockpriv: false
         blockbogons: true
